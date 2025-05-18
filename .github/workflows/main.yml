@@ -27,6 +27,11 @@ jobs:
       # Checkout step is necessary to access repository files
       - name: Checkout repository
         uses: actions/checkout@v4
+      # Pin the runner to Python 3.11 (snowflake‑legacy doesn’t support 3.12 yet)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       # Determine environment based on target branch
       - name: Set environment
@@ -51,7 +56,18 @@ jobs:
         with:
           cli-version: "latest"
           default-config-file-path: "config.toml"
+      
+      # Then inject the runtime libraries the action skipped
+      - name: Inject CLI runtime dependencies
+        run: |
+          pipx inject snowflake-cli \
+            'snowflake.core>=1.4' \
+            'snowflake-connector-python>=3.5'
 
+      # Quick smoke‑test so we fail fast if install is still broken
+      - name: Verify Snow CLI
+        run: snow --version 
+      
       # Fetch latest changes from the repository to Snowflake
       - name: Fetch latest changes to Snowflake
         run: snow git fetch course_repo.public.advanced_data_engineering_snowflake
