@@ -51,6 +51,9 @@ jobs:
         with:
           cli-version: "latest"
           default-config-file-path: "config.toml"
+      # patch missing dependency
+      - name: Inject snowflake.core
+        run: pipx inject snowflake-cli 'snowflake>=1.0.0' --include-apps    
 
       # Fetch latest changes from the repository to Snowflake
       - name: Fetch latest changes to Snowflake
